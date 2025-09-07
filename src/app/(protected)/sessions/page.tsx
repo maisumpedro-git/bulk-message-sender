@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Button, Chip, Typography, Box, Paper, Stack } from '@mui/material';
+import StartButton from './StartButton';
 
 async function getSessions() {
   return prisma.session.findMany({ orderBy: { createdAt: 'desc' }, take: 50 });
@@ -33,10 +34,4 @@ export default async function SessionsPage() {
   );
 }
 
-function StartButton({ sessionId }: { sessionId: string }) {
-  async function start() {
-    await fetch('/api/sessions/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId }) });
-    window.location.reload();
-  }
-  return <Button size="small" onClick={start}>Iniciar</Button>;
-}
+// StartButton moved to client component file

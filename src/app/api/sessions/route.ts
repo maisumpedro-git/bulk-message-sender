@@ -17,8 +17,11 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = sessionSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
-  // TODO: auth user
-  const creatorId = 'temp-user';
-  const session = await prisma.session.create({ data: { ...parsed.data, creatorId } });
+  // TODO: autenticação real. Enquanto isso garantir um usuário padrão para evitar FK (P2003)
+  let user = await prisma.user.findFirst();
+  if (!user) {
+    user = await prisma.user.create({ data: { email: 'system@local', password: 'placeholder', name: 'System User', role: 'ADMIN' } });
+  }
+  const session = await prisma.session.create({ data: { ...parsed.data, creatorId: user.id } });
   return NextResponse.json(session, { status: 201 });
 }

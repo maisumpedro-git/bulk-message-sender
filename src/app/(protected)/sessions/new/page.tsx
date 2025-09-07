@@ -21,7 +21,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 
 type Brand = { id: string; name: string; prefix: string; fromNumber: string };
-type Template = { id: string; name: string; type: string; body: string; variables: string[]; hasVariables: boolean };
+type Template = { id: string; name: string; type: string; body: string; variables: string[]; hasVariables: boolean; templateRefId?: string | null };
 
 interface CSVPreview {
   headers: string[];
@@ -156,11 +156,27 @@ export default function NewSessionPage() {
     setCreating(true);
     setError(null);
     try {
-      // 1. Create session (DRAFT)
+      // 0. Ensure TemplateReference exists (create if needed)
+      const chosen = selectedTemplate;
+      if (!chosen) throw new Error("Template não selecionado");
+      let templateRefId = chosen.templateRefId;
+      if (!templateRefId) {
+        const createRes = await fetch('/api/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ twilioId: chosen.id, name: chosen.name, hasVariables: chosen.hasVariables })
+        });
+        if (!createRes.ok) throw new Error('Falha ao registrar template');
+        const created = await createRes.json();
+        templateRefId = created.id;
+        // update local state so subsequent sessions reuse
+        setTemplates(ts => ts.map(t => t.id === chosen.id ? { ...t, templateRefId } : t));
+      }
+      // 1. Create session (usa cuid do TemplateReference)
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, brandId, templateId }),
+        body: JSON.stringify({ name, brandId, templateId: templateRefId }),
       });
       if (!res.ok) throw new Error("Erro ao criar sessão");
       const session = await res.json();

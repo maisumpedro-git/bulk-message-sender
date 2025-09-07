@@ -8,7 +8,13 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get('page') || '1', 10);
   const { items, hasMore } = await listContentTemplates(page);
-  return NextResponse.json({ page, items, hasMore });
+  // Enrich with existing TemplateReference IDs so frontend can reuse
+  const twilioIds = items.map(i => i.id);
+  const existing = await prisma.templateReference.findMany({ where: { twilioId: { in: twilioIds } } });
+  const map: Record<string, string> = {};
+  existing.forEach(r => { map[r.twilioId] = r.id; });
+  const enriched = items.map(i => ({ ...i, templateRefId: map[i.id] || null }));
+  return NextResponse.json({ page, items: enriched, hasMore });
 }
 
 const templateCreateSchema = z.object({
