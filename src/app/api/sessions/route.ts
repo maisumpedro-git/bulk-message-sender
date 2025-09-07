@@ -8,9 +8,28 @@ const sessionSchema = z.object({
   templateId: z.string().cuid()
 });
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const stats = url.searchParams.get('stats');
   const sessions = await prisma.session.findMany({ orderBy: { createdAt: 'desc' }, take: 50 });
-  return NextResponse.json(sessions);
+  if (stats !== '1' || !sessions.length) return NextResponse.json(sessions);
+  const ids = sessions.map(s => s.id);
+  const grouped = await prisma.outboundMessage.groupBy({
+    by: ['sessionId', 'status'],
+    where: { sessionId: { in: ids } },
+    _count: { _all: true }
+  });
+  const counts: Record<string, { sent: number; failed: number; pending: number; total: number; }>= {};
+  for (const g of grouped) {
+    const c = counts[g.sessionId] || (counts[g.sessionId] = { sent: 0, failed: 0, pending: 0, total: 0 });
+    const n = (g as any)._count._all as number;
+    if (g.status === 'SENT') c.sent += n;
+    else if (g.status === 'FAILED') c.failed += n;
+    else if (g.status === 'PENDING') c.pending += n;
+    c.total += n;
+  }
+  const enriched = sessions.map(s => ({ ...s, ...(counts[s.id] || { sent: 0, failed: 0, pending: 0, total: 0 }) }));
+  return NextResponse.json(enriched);
 }
 
 export async function POST(req: NextRequest) {
