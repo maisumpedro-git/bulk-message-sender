@@ -1,0 +1,117 @@
+// Prisma schema
+// Adjust models as needed while implementing features
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions  Session[]
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String
+  prefix      String   @unique
+  fromNumber  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sessions    Session[]
+}
+
+model TemplateReference {
+  id          String   @id @default(cuid())
+  twilioId    String   @unique
+  name        String
+  hasVariables Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sessions    Session[]
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  name        String
+  creator     User     @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  brand       Brand    @relation(fields: [brandId], references: [id])
+  brandId     String
+  template    TemplateReference @relation(fields: [templateId], references: [id])
+  templateId  String
+  status      SessionStatus @default(DRAFT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  contactLists ContactList[]
+  messages    OutboundMessage[]
+  variableMappings SessionVariableMapping[]
+}
+
+enum SessionStatus {
+  DRAFT
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model ContactList {
+  id        String   @id @default(cuid())
+  name      String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId String
+  contacts  Contact[]
+  createdAt DateTime @default(now())
+}
+
+model Contact {
+  id           String   @id @default(cuid())
+  phone        String
+  rawData      Json
+  contactList  ContactList @relation(fields: [contactListId], references: [id])
+  contactListId String
+  messages     OutboundMessage[]
+}
+
+model OutboundMessage {
+  id         String   @id @default(cuid())
+  session    Session  @relation(fields: [sessionId], references: [id])
+  sessionId  String
+  contact    Contact  @relation(fields: [contactId], references: [id])
+  contactId  String
+  status     MessageStatus @default(PENDING)
+  error      String?
+  twilioSid  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model SessionVariableMapping {
+  id        String  @id @default(cuid())
+  session   Session @relation(fields: [sessionId], references: [id])
+  sessionId String
+  variable  String
+  columnKey String
+  createdAt DateTime @default(now())
+}
