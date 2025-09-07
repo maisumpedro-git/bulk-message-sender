@@ -385,15 +385,20 @@ export default function NewSessionPage() {
                   variant="outlined"
                   sx={{ p: 1, display: "flex", gap: 1, alignItems: "center" }}
                 >
-                  <TextField
-                    size="small"
-                    label="Variável"
-                    placeholder="1"
-                    value={m.variable}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      updateVariableMapping(idx, { variable: e.target.value })
-                    }
-                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel id={`var-${idx}`}>Variável</InputLabel>
+                    <Select
+                      labelId={`var-${idx}`}
+                      label="Variável"
+                      value={m.variable}
+                      onChange={(e: any) => updateVariableMapping(idx, { variable: e.target.value as string })}
+                    >
+                      <MenuItem value=""><em>Selecione</em></MenuItem>
+                      {selectedTemplate?.variables.map(v => (
+                        <MenuItem value={v} key={v}>{`{{${v}}}`}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                   <FormControl size="small" sx={{ minWidth: 160 }}>
                     <InputLabel id={`col-${idx}`}>Coluna</InputLabel>
                     <Select
