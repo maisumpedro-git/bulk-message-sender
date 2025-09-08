@@ -7,9 +7,17 @@ import { listContentTemplates } from '@/services/twilioContent';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get('page') || '1', 10);
+  const q = (searchParams.get('q') || '').trim();
   const { items, hasMore } = await listContentTemplates(page);
+  // Optional server-side filter to improve search UX
+  const filtered = q
+    ? items.filter((i) =>
+        (i.name && i.name.toLowerCase().includes(q.toLowerCase())) ||
+        (i.body && i.body.toLowerCase().includes(q.toLowerCase())),
+      )
+    : items;
   // Enrich with existing TemplateReference IDs so frontend can reuse
-  const twilioIds = items.map((i) => i.id);
+  const twilioIds = filtered.map((i) => i.id);
   const existing = await prisma.templateReference.findMany({
     where: { twilioId: { in: twilioIds } },
   });
@@ -17,7 +25,7 @@ export async function GET(req: NextRequest) {
   existing.forEach((r) => {
     map[r.twilioId] = r.id;
   });
-  const enriched = items.map((i) => ({ ...i, templateRefId: map[i.id] || null }));
+  const enriched = filtered.map((i) => ({ ...i, templateRefId: map[i.id] || null }));
   return NextResponse.json({ page, items: enriched, hasMore });
 }
 
