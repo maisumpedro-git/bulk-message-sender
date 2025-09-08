@@ -1,7 +1,7 @@
 'use client';
 import { signIn } from 'next-auth/react';
 import { FormEvent, useState } from 'react';
-import { Box, Button, TextField, Paper, Typography, Alert } from '@mui/material';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,16 +19,40 @@ export default function LoginPage() {
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh" p={2}>
-      <Paper sx={{ p: 4, width: 360, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="h5" fontWeight={600}>Login</Typography>
-        {error && <Alert severity="error">{error}</Alert>}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required fullWidth />
-            <TextField label="Senha" type="password" value={password} onChange={e => setPassword(e.target.value)} required fullWidth />
-          <Button type="submit" variant="contained" disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</Button>
+    <div className="flex min-h-[80vh] items-center justify-center px-4">
+      <div className="w-full max-w-sm rounded-md border border-neutral-200 bg-white p-6 shadow-sm">
+        <h1 className="mb-4 text-xl font-semibold">Login</h1>
+        {error && (
+          <div className="mb-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-700">Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-700">Senha</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+            />
+          </label>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </Button>
         </form>
-      </Paper>
-    </Box>
+      </div>
+    </div>
   );
 }

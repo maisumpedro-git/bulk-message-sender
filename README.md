@@ -21,6 +21,7 @@ docker compose exec web npm run seed
 4. Acesse http://localhost:3000/login com as credenciais admin do `.env`.
 
 ## Próximos Passos
+
 - Implementar criação de sessão (upload CSV, mapeamento de variáveis).
 - Paginação de templates via API Twilio Content.
 - Tela de configurações (marcas, credenciais Twilio).
@@ -29,6 +30,7 @@ docker compose exec web npm run seed
 - Validações com Zod.
 
 ## Estrutura Atual (resumida)
+
 ```
 prisma/
   schema.prisma

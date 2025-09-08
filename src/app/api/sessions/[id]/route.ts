@@ -3,12 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-  const session = await prisma.session.findUnique({ where: { id }, include: { brand: true, template: true } });
+  const session = await prisma.session.findUnique({
+    where: { id },
+    include: { brand: true, template: true },
+  });
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   const grouped = await prisma.outboundMessage.groupBy({
     by: ['status'],
     where: { sessionId: id },
-    _count: { _all: true }
+    _count: { _all: true },
   });
   const counts = { sent: 0, failed: 0, pending: 0, total: 0 };
   for (const g of grouped) {

@@ -1,27 +1,16 @@
-"use client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Stepper,
-  Step,
-  StepLabel,
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Typography,
-  Paper,
-  CircularProgress,
-  IconButton,
-  Divider,
-  Chip,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+'use client';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 type Brand = { id: string; name: string; prefix: string; fromNumber: string };
-type Template = { id: string; name: string; type: string; body: string; variables: string[]; hasVariables: boolean; templateRefId?: string | null };
+type Template = {
+  id: string;
+  name: string;
+  type: string;
+  body: string;
+  variables: string[];
+  hasVariables: boolean;
+  templateRefId?: string | null;
+};
 
 interface CSVPreview {
   headers: string[];
@@ -35,25 +24,23 @@ interface VariableMappingItem {
 
 export default function NewSessionPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [name, setName] = useState("");
-  const [brandId, setBrandId] = useState("");
-  const [templateId, setTemplateId] = useState("");
+  const [name, setName] = useState('');
+  const [brandId, setBrandId] = useState('');
+  const [templateId, setTemplateId] = useState('');
   const [brands, setBrands] = useState<Brand[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templatePage, setTemplatePage] = useState(1);
   const [templatesHasMore, setTemplatesHasMore] = useState(true);
   const [csvPreview, setCsvPreview] = useState<CSVPreview | null>(null);
-  const [phoneColumn, setPhoneColumn] = useState("");
-  const [variableMappings, setVariableMappings] = useState<
-    VariableMappingItem[]
-  >([]);
+  const [phoneColumn, setPhoneColumn] = useState('');
+  const [variableMappings, setVariableMappings] = useState<VariableMappingItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Load brands once
   useEffect(() => {
-    fetch("/api/brands")
+    fetch('/api/brands')
       .then((r) => r.json())
       .then(setBrands)
       .catch((e) => setError(e.message));
@@ -61,9 +48,7 @@ export default function NewSessionPage() {
 
   // Load initial templates
   useEffect(() => {
-    loadTemplates(
-      templatePage
-    ); /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    loadTemplates(templatePage); /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, []);
 
   const loadTemplates = useCallback(
@@ -80,12 +65,12 @@ export default function NewSessionPage() {
         setError(e.message);
       }
     },
-    [templatesHasMore]
+    [templatesHasMore],
   );
 
   const selectedTemplate = useMemo(
     () => templates.find((t) => t.id === templateId),
-    [templateId, templates]
+    [templateId, templates],
   );
 
   // keep original file for finalize step
@@ -99,12 +84,12 @@ export default function NewSessionPage() {
     setError(null);
     try {
       const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/sessions/upload-contacts", {
-        method: "POST",
+      fd.append('file', file);
+      const res = await fetch('/api/sessions/upload-contacts', {
+        method: 'POST',
         body: fd,
       });
-      if (!res.ok) throw new Error("Falha ao processar CSV");
+      if (!res.ok) throw new Error('Falha ao processar CSV');
       const data = await res.json();
       const rows: Record<string, string>[] = data.sample;
       const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
@@ -121,28 +106,25 @@ export default function NewSessionPage() {
   };
 
   const addVariableMapping = () => {
-    setVariableMappings((v) => [...v, { variable: "", columnKey: "" }]);
+    setVariableMappings((v) => [...v, { variable: '', columnKey: '' }]);
   };
 
   // When selecting a template with variables numeric like ['1','2'] pre-fill mapping rows if empty
   useEffect(() => {
     if (selectedTemplate && selectedTemplate.hasVariables) {
       if (!variableMappings.length) {
-        setVariableMappings(selectedTemplate.variables.map(v => ({ variable: v, columnKey: "" })));
+        setVariableMappings(
+          selectedTemplate.variables.map((v) => ({ variable: v, columnKey: '' })),
+        );
       }
     } else {
       setVariableMappings([]);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTemplate?.id]);
 
-  const updateVariableMapping = (
-    idx: number,
-    patch: Partial<VariableMappingItem>
-  ) => {
-    setVariableMappings((v) =>
-      v.map((m, i) => (i === idx ? { ...m, ...patch } : m))
-    );
+  const updateVariableMapping = (idx: number, patch: Partial<VariableMappingItem>) => {
+    setVariableMappings((v) => v.map((m, i) => (i === idx ? { ...m, ...patch } : m)));
   };
 
   const removeVariableMapping = (idx: number) => {
@@ -158,46 +140,48 @@ export default function NewSessionPage() {
     try {
       // 0. Ensure TemplateReference exists (create if needed)
       const chosen = selectedTemplate;
-      if (!chosen) throw new Error("Template não selecionado");
+      if (!chosen) throw new Error('Template não selecionado');
       let templateRefId = chosen.templateRefId;
       if (!templateRefId) {
         const createRes = await fetch('/api/templates', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ twilioId: chosen.id, name: chosen.name, hasVariables: chosen.hasVariables })
+          body: JSON.stringify({
+            twilioId: chosen.id,
+            name: chosen.name,
+            hasVariables: chosen.hasVariables,
+          }),
         });
         if (!createRes.ok) throw new Error('Falha ao registrar template');
         const created = await createRes.json();
         templateRefId = created.id;
         // update local state so subsequent sessions reuse
-        setTemplates(ts => ts.map(t => t.id === chosen.id ? { ...t, templateRefId } : t));
+        setTemplates((ts) => ts.map((t) => (t.id === chosen.id ? { ...t, templateRefId } : t)));
       }
       // 1. Create session (usa cuid do TemplateReference)
-      const res = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, brandId, templateId: templateRefId }),
       });
-      if (!res.ok) throw new Error("Erro ao criar sessão");
+      if (!res.ok) throw new Error('Erro ao criar sessão');
       const session = await res.json();
-      if (!csvFileRef.current) throw new Error("Arquivo CSV ausente");
+      if (!csvFileRef.current) throw new Error('Arquivo CSV ausente');
       const fd = new FormData();
-      fd.append("sessionId", session.id);
-      fd.append("phoneColumn", phoneColumn);
-      fd.append("file", csvFileRef.current);
+      fd.append('sessionId', session.id);
+      fd.append('phoneColumn', phoneColumn);
+      fd.append('file', csvFileRef.current);
       fd.append(
-        "variableMappings",
-        JSON.stringify(
-          variableMappings.filter((m) => m.variable && m.columnKey)
-        )
+        'variableMappings',
+        JSON.stringify(variableMappings.filter((m) => m.variable && m.columnKey)),
       );
-      const finalizeRes = await fetch("/api/sessions/finalize", {
-        method: "POST",
+      const finalizeRes = await fetch('/api/sessions/finalize', {
+        method: 'POST',
         body: fd,
       });
-      if (!finalizeRes.ok) throw new Error("Falha ao salvar contatos");
+      if (!finalizeRes.ok) throw new Error('Falha ao salvar contatos');
       const finalizeData = await finalizeRes.json();
-      alert("Sessão criada! Contatos válidos: " + finalizeData.contacts);
+      alert('Sessão criada! Contatos válidos: ' + finalizeData.contacts);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -206,245 +190,267 @@ export default function NewSessionPage() {
   };
 
   return (
-    <Box maxWidth={1000} mx="auto" p={2}>
-      <Typography variant="h4" gutterBottom>
-        Nova Sessão de Disparo
-      </Typography>
+    <div className="mx-auto max-w-5xl">
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Nova Sessão de Disparo</h1>
       {error && (
-        <Typography color="error" mb={2}>
+        <div className="mb-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {error}
-        </Typography>
+        </div>
       )}
-      <Stepper activeStep={step - 1} sx={{ mb: 3 }}>
-        {["Definições", "Upload", "Mapeamento"].map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
+      <ol className="mb-6 flex gap-4 text-sm font-medium">
+        {['Definições', 'Upload', 'Mapeamento'].map((label, i) => (
+          <li
+            key={label}
+            className={`flex items-center gap-2 ${step === i + 1 ? 'text-neutral-900' : 'text-neutral-400'}`}
+          >
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs ${step === i + 1 ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300'}`}
+            >
+              {i + 1}
+            </span>
+            {label}
+          </li>
         ))}
-      </Stepper>
+      </ol>
       {step === 1 && (
-        <Paper sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3 }}>
-          <Typography variant="h6">1. Definições Básicas</Typography>
-          <TextField
-            label="Nome da Sessão"
-            value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setName(e.target.value)
-            }
-            fullWidth
-            placeholder="Campanha Primavera"
-          />
-          <FormControl fullWidth>
-            <InputLabel id="brand-label">Marca</InputLabel>
-            <Select
-              labelId="brand-label"
-              label="Marca"
-              value={brandId}
-              onChange={(e: any) => setBrandId(e.target.value as string)}
-            >
-              <MenuItem value="">
-                <em>Selecione</em>
-              </MenuItem>
-              {brands.map((b) => (
-                <MenuItem value={b.id} key={b.id}>
-                  {b.prefix} - {b.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              Template
-            </Typography>
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 1,
-                maxHeight: 240,
-                overflow: "auto",
-                display: "flex",
-                flexDirection: "column",
-                gap: 1,
-              }}
-            >
-              {templates.map((t) => (
-                <Paper
-                  key={t.id}
-                  variant={templateId === t.id ? "elevation" : "outlined"}
-                  sx={{
-                    p: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setTemplateId(t.id)}
-                >
-                  <Chip
-                    size="small"
-                    color={t.hasVariables ? "secondary" : "default"}
-                    label={t.hasVariables ? "Vars" : "Fixo"}
-                  />
-                  <Chip size="small" label={t.type.replace('twilio/','')} />
-                  <Typography fontWeight={templateId === t.id ? 600 : 400}>
-                    {t.name}
-                  </Typography>
-                </Paper>
-              ))}
-              {templatesHasMore && (
-                <Button onClick={() => loadTemplates(templatePage + 1)}>
-                  Carregar mais
-                </Button>
-              )}
-            </Paper>
-          </Box>
-          <Box display="flex" gap={2} justifyContent="flex-end">
-            <Button
-              variant="contained"
-              disabled={!canProceedToUpload}
-              onClick={() => setStep(2)}
-            >
-              Próximo
-            </Button>
-          </Box>
-        </Paper>
+        <section className="mb-8 rounded-md border border-neutral-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-600">
+            1. Definições Básicas
+          </h2>
+          <div className="flex flex-col gap-4">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium text-neutral-700">Nome da Sessão</span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Campanha Primavera"
+                className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium text-neutral-700">Marca</span>
+              <select
+                value={brandId}
+                onChange={(e) => setBrandId(e.target.value)}
+                className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+              >
+                <option value="">Selecione</option>
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.prefix} - {b.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div>
+              <p className="mb-2 text-sm font-medium text-neutral-700">Template</p>
+              <div className="flex max-h-60 flex-col gap-2 overflow-auto rounded border border-neutral-200 bg-neutral-50 p-2">
+                {templates.map((t) => {
+                  const active = templateId === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTemplateId(t.id)}
+                      className={`flex items-center gap-2 rounded border px-2 py-1 text-left text-sm ${active ? 'border-neutral-800 bg-neutral-800 text-white' : 'border-neutral-300 bg-white hover:border-neutral-500'}`}
+                    >
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${t.hasVariables ? 'bg-indigo-100 text-indigo-700' : 'bg-neutral-200 text-neutral-700'}`}
+                      >
+                        {t.hasVariables ? 'Vars' : 'Fixo'}
+                      </span>
+                      <span className="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700">
+                        {t.type.replace('twilio/', '')}
+                      </span>
+                      <span className="truncate font-medium">{t.name}</span>
+                    </button>
+                  );
+                })}
+                {templatesHasMore && (
+                  <button
+                    type="button"
+                    onClick={() => loadTemplates(templatePage + 1)}
+                    className="rounded border border-dashed border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-500"
+                  >
+                    Carregar mais
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                disabled={!canProceedToUpload}
+                onClick={() => setStep(2)}
+                className="inline-flex h-9 items-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Próximo
+              </button>
+            </div>
+          </div>
+        </section>
       )}
       {step === 2 && (
-        <Paper sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}>
-          <Typography variant="h6">2. Upload da Lista</Typography>
-          <Button variant="outlined" component="label" disabled={uploading}>
-            {uploading ? "Processando..." : "Selecionar CSV"}
-            <input
-              hidden
-              type="file"
-              accept=".csv,text/csv"
-              onChange={onFileChange}
-            />
-          </Button>
-          {uploading && <CircularProgress size={24} />}
-          {csvPreview && (
-            <Box>
-              <Typography variant="body2" mb={1}>
-                Colunas detectadas:
-              </Typography>
-              <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-                {csvPreview.headers.map((h) => (
-                  <Chip key={h} label={h} />
-                ))}
-              </Box>
-              <FormControl fullWidth>
-                <InputLabel id="phone-col">Coluna de Telefone</InputLabel>
-                <Select
-                  labelId="phone-col"
-                  label="Coluna de Telefone"
-                  value={phoneColumn}
-                  onChange={(e: any) =>
-                    setPhoneColumn(e.target.value as string)
-                  }
-                >
+        <section className="mb-8 rounded-md border border-neutral-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-600">
+            2. Upload da Lista
+          </h2>
+          <div className="flex flex-col gap-4">
+            <label className="inline-flex w-fit cursor-pointer items-center justify-center rounded border border-neutral-300 bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-neutral-50">
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={onFileChange}
+                className="hidden"
+              />
+              {uploading ? 'Processando...' : 'Selecionar CSV'}
+            </label>
+            {uploading && <p className="text-xs text-neutral-500">Processando arquivo...</p>}
+            {csvPreview && (
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">
+                  Colunas detectadas:
+                </p>
+                <div className="mb-2 flex flex-wrap gap-1">
                   {csvPreview.headers.map((h) => (
-                    <MenuItem value={h} key={h}>
+                    <span
+                      key={h}
+                      className="rounded bg-neutral-200 px-2 py-0.5 text-[10px] font-medium text-neutral-700"
+                    >
                       {h}
-                    </MenuItem>
+                    </span>
                   ))}
-                </Select>
-              </FormControl>
-            </Box>
-          )}
-          <Box display="flex" gap={2} justifyContent="space-between" mt={1}>
-            <Button onClick={() => setStep(1)}>Voltar</Button>
-            <Button
-              variant="contained"
-              disabled={!canProceedToReview}
-              onClick={() => setStep(3)}
-            >
-              Próximo
-            </Button>
-          </Box>
-        </Paper>
+                </div>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-medium text-neutral-700">Coluna de Telefone</span>
+                  <select
+                    value={phoneColumn}
+                    onChange={(e) => setPhoneColumn(e.target.value)}
+                    className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+                  >
+                    {csvPreview.headers.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+            <div className="mt-2 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-sm font-medium text-neutral-700 hover:underline"
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                disabled={!canProceedToReview}
+                onClick={() => setStep(3)}
+                className="inline-flex h-9 items-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Próximo
+              </button>
+            </div>
+          </div>
+        </section>
       )}
       {step === 3 && (
-        <Paper sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}>
-          <Typography variant="h6">3. Mapeamento de Variáveis</Typography>
+        <section className="mb-8 rounded-md border border-neutral-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-600">
+            3. Mapeamento de Variáveis
+          </h2>
           {selectedTemplate && (
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>Preview do Template ({selectedTemplate.type})</Typography>
-              <Paper variant="outlined" sx={{ p:1, whiteSpace:'pre-wrap', fontSize:14, mb:2 }}>
+            <div className="mb-4">
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">
+                Preview do Template ({selectedTemplate.type})
+              </p>
+              <pre className="whitespace-pre-wrap rounded border border-neutral-200 bg-neutral-50 p-2 text-xs text-neutral-800">
                 {selectedTemplate.body || 'Sem conteúdo'}
-              </Paper>
-            </Box>
+              </pre>
+            </div>
           )}
           {selectedTemplate?.hasVariables ? (
-            <Box display="flex" flexDirection="column" gap={2}>
-              <Typography variant="body2">
-                Defina quais colunas alimentam cada variável numérica do template (ex: {'{{1}}'}, {'{{2}}'} ).
-              </Typography>
+            <div className="flex flex-col gap-3">
+              <p className="text-xs text-neutral-600">
+                Defina quais colunas alimentam cada variável numérica do template (ex: {'{{1}}'},{' '}
+                {'{{2}}'} ).
+              </p>
               {variableMappings.map((m, idx) => (
-                <Paper
+                <div
                   key={idx}
-                  variant="outlined"
-                  sx={{ p: 1, display: "flex", gap: 1, alignItems: "center" }}
+                  className="flex flex-wrap items-center gap-2 rounded border border-neutral-200 bg-neutral-50 p-2"
                 >
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel id={`var-${idx}`}>Variável</InputLabel>
-                    <Select
-                      labelId={`var-${idx}`}
-                      label="Variável"
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[11px] font-medium text-neutral-600">Variável</span>
+                    <select
                       value={m.variable}
-                      onChange={(e: any) => updateVariableMapping(idx, { variable: e.target.value as string })}
+                      onChange={(e) => updateVariableMapping(idx, { variable: e.target.value })}
+                      className="h-9 rounded border border-neutral-300 bg-white px-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
                     >
-                      <MenuItem value=""><em>Selecione</em></MenuItem>
-                      {selectedTemplate?.variables.map(v => (
-                        <MenuItem value={v} key={v}>{`{{${v}}}`}</MenuItem>
+                      <option value="">Selecione</option>
+                      {selectedTemplate.variables.map((v) => (
+                        <option key={v} value={v}>{`{{${v}}}`}</option>
                       ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 160 }}>
-                    <InputLabel id={`col-${idx}`}>Coluna</InputLabel>
-                    <Select
-                      labelId={`col-${idx}`}
-                      label="Coluna"
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[11px] font-medium text-neutral-600">Coluna</span>
+                    <select
                       value={m.columnKey}
-                      onChange={(e: any) =>
-                        updateVariableMapping(idx, {
-                          columnKey: e.target.value as string,
-                        })
-                      }
+                      onChange={(e) => updateVariableMapping(idx, { columnKey: e.target.value })}
+                      className="h-9 rounded border border-neutral-300 bg-white px-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
                     >
-                      <MenuItem value="">
-                        <em>Selecione</em>
-                      </MenuItem>
+                      <option value="">Selecione</option>
                       {csvPreview?.headers.map((h) => (
-                        <MenuItem value={h} key={h}>
+                        <option key={h} value={h}>
                           {h}
-                        </MenuItem>
+                        </option>
                       ))}
-                    </Select>
-                  </FormControl>
-                  <IconButton
-                    aria-label="remover"
+                    </select>
+                  </div>
+                  <button
+                    type="button"
                     onClick={() => removeVariableMapping(idx)}
+                    className="ml-auto inline-flex h-9 items-center rounded border border-rose-300 bg-rose-50 px-3 text-xs font-medium text-rose-700 hover:bg-rose-100"
                   >
-                    <DeleteIcon />
-                  </IconButton>
-                </Paper>
+                    Remover
+                  </button>
+                </div>
               ))}
-              <Button onClick={addVariableMapping}>Adicionar Variável</Button>
-              <Divider />
-            </Box>
+              <button
+                type="button"
+                onClick={addVariableMapping}
+                className="inline-flex w-fit items-center rounded border border-dashed border-neutral-400 px-3 py-1 text-xs font-medium text-neutral-700 hover:border-neutral-600"
+              >
+                Adicionar Variável
+              </button>
+              <hr className="my-2 border-neutral-200" />
+            </div>
           ) : (
-            <Typography variant="body2">
-              Template não possui variáveis.
-            </Typography>
+            <p className="text-sm text-neutral-600">Template não possui variáveis.</p>
           )}
-          <Box display="flex" gap={2} justifyContent="space-between" mt={1}>
-            <Button onClick={() => setStep(2)}>Voltar</Button>
-            <Button variant="contained" disabled={creating} onClick={submitAll}>
-              {creating ? "Criando..." : "Criar Sessão"}
-            </Button>
-          </Box>
-        </Paper>
+          <div className="mt-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="text-sm font-medium text-neutral-700 hover:underline"
+            >
+              Voltar
+            </button>
+            <button
+              type="button"
+              disabled={creating}
+              onClick={submitAll}
+              className="inline-flex h-9 items-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {creating ? 'Criando...' : 'Criar Sessão'}
+            </button>
+          </div>
+        </section>
       )}
-    </Box>
+    </div>
   );
 }

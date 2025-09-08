@@ -5,7 +5,7 @@ import { z } from 'zod';
 const sessionSchema = z.object({
   name: z.string().min(1),
   brandId: z.string().cuid(),
-  templateId: z.string().cuid()
+  templateId: z.string().cuid(),
 });
 
 export async function GET(req: NextRequest) {
@@ -13,33 +13,41 @@ export async function GET(req: NextRequest) {
   const stats = url.searchParams.get('stats');
   const sessions = await prisma.session.findMany({ orderBy: { createdAt: 'desc' }, take: 50 });
   if (stats !== '1' || !sessions.length) return NextResponse.json(sessions);
-  const ids = sessions.map(s => s.id);
+  const ids = sessions.map((s) => s.id);
   const grouped = await prisma.outboundMessage.groupBy({
     by: ['sessionId', 'status'],
     where: { sessionId: { in: ids } },
-    _count: { _all: true }
+    _count: { _all: true },
   });
-  const counts: Record<string, { sent: number; failed: number; pending: number; total: number; }>= {};
+  const counts: Record<string, { sent: number; failed: number; pending: number; total: number }> =
+    {};
   for (const g of grouped) {
-    const c = counts[g.sessionId] || (counts[g.sessionId] = { sent: 0, failed: 0, pending: 0, total: 0 });
+    const c =
+      counts[g.sessionId] || (counts[g.sessionId] = { sent: 0, failed: 0, pending: 0, total: 0 });
     const n = (g as any)._count._all as number;
     if (g.status === 'SENT') c.sent += n;
     else if (g.status === 'FAILED') c.failed += n;
     else if (g.status === 'PENDING') c.pending += n;
     c.total += n;
   }
-  const enriched = sessions.map(s => ({ ...s, ...(counts[s.id] || { sent: 0, failed: 0, pending: 0, total: 0 }) }));
+  const enriched = sessions.map((s) => ({
+    ...s,
+    ...(counts[s.id] || { sent: 0, failed: 0, pending: 0, total: 0 }),
+  }));
   return NextResponse.json(enriched);
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = sessionSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success)
+    return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
   // TODO: autenticação real. Enquanto isso garantir um usuário padrão para evitar FK (P2003)
   let user = await prisma.user.findFirst();
   if (!user) {
-    user = await prisma.user.create({ data: { email: 'system@local', password: 'placeholder', name: 'System User', role: 'ADMIN' } });
+    user = await prisma.user.create({
+      data: { email: 'system@local', password: 'placeholder', name: 'System User', role: 'ADMIN' },
+    });
   }
   const session = await prisma.session.create({ data: { ...parsed.data, creatorId: user.id } });
   return NextResponse.json(session, { status: 201 });

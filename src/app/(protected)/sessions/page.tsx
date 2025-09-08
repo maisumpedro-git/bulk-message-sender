@@ -1,16 +1,20 @@
 import Link from 'next/link';
-import { Button, Typography, Box,  } from '@mui/material';
 import SessionsLive from './SessionsLive';
+import { Button } from '@/components/ui/button';
 
 export default function SessionsPage() {
-  // Wrapper to render client live component (for polling) keeping server layout simple
   return (
-    <Box p={3} maxWidth={1000} mx="auto">
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Sessões</Typography>
-        <Button component={Link} href="/sessions/new" variant="contained">Criar Sessão</Button>
-      </Box>
+    <div>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Sessões</h1>
+        <Link
+          href="/sessions/new"
+          className="inline-flex h-9 items-center justify-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+        >
+          Criar Sessão
+        </Link>
+      </div>
       <SessionsLive />
-    </Box>
+    </div>
   );
 }

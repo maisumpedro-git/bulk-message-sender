@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2021",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ES2021"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ES2021"],
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
@@ -18,17 +14,10 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": [
-      "node",
-      "next",
-      "next/types/global",
-      "next/image-types/global"
-    ],
+    "types": ["node", "next", "next/types/global", "next/image-types/global"],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     },
     "plugins": [
       {
@@ -36,14 +25,6 @@
       }
     ]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "prisma",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "prisma", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

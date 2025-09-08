@@ -1,46 +1,169 @@
 import { prisma } from '@/lib/prisma';
-import { Box, Typography, Chip, Paper, Stack } from '@mui/material';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 
 async function getSession(id: string) {
-  const session = await prisma.session.findUnique({ where: { id }, include: { brand: true, template: true } });
+  const session = await prisma.session.findUnique({
+    where: { id },
+    include: { brand: true, template: true },
+  });
   if (!session) return null;
-  const grouped = await prisma.outboundMessage.groupBy({ by: ['status'], where: { sessionId: id }, _count: { _all: true } });
+  const grouped = await prisma.outboundMessage.groupBy({
+    by: ['status'],
+    where: { sessionId: id },
+    _count: { _all: true },
+  });
   const counts = { sent: 0, failed: 0, pending: 0, total: 0 };
   for (const g of grouped) {
     const n = (g as any)._count._all as number;
-    if (g.status === 'SENT') counts.sent += n; else if (g.status === 'FAILED') counts.failed += n; else if (g.status === 'PENDING') counts.pending += n; counts.total += n;
+    if (g.status === 'SENT') counts.sent += n;
+    else if (g.status === 'FAILED') counts.failed += n;
+    else if (g.status === 'PENDING') counts.pending += n;
+    counts.total += n;
   }
   return { session, counts };
 }
 
 export default async function SessionDetail({ params }: { params: { id: string } }) {
   const data = await getSession(params.id);
-  if (!data) return <Box p={3}><Typography>Sessão não encontrada</Typography></Box>;
+  if (!data) return <div className="p-6 text-sm">Sessão não encontrada</div>;
   const { session, counts } = data;
+  const tone =
+    session.status === 'RUNNING'
+      ? 'warning'
+      : session.status === 'COMPLETED'
+        ? 'success'
+        : session.status === 'FAILED'
+          ? 'danger'
+          : 'neutral';
   return (
-    <Box p={3} maxWidth={900} mx="auto" display="flex" flexDirection="column" gap={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4">Sessão: {session.name}</Typography>
-        <Chip label={session.status} color={session.status === 'RUNNING' ? 'warning' : session.status === 'COMPLETED' ? 'success' : session.status === 'FAILED' ? 'error' : 'default'} />
-      </Box>
-      <Typography variant="body2">Criada em: {new Date(session.createdAt as any).toLocaleString()}</Typography>
-      <Typography variant="body2">Marca: {session.brand.name}</Typography>
-      <Typography variant="body2">Template: {session.template.name}</Typography>
-      <Paper sx={{ p:2 }}>
-        <Typography variant="h6" gutterBottom>Estatísticas</Typography>
-        <Stack direction="row" gap={3} flexWrap="wrap">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold">Sessão: {session.name}</h1>
+        <Badge tone={tone}>{session.status}</Badge>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <InfoCard label="Criada" value={new Date(session.createdAt as any).toLocaleString()} />
+        <InfoCard label="Marca" value={session.brand.name} />
+        <InfoCard label="Template" value={session.template.name} />
+        <InfoCard label="Status" value={session.status} />
+      </div>
+      <div className="rounded-md border border-neutral-200 bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold tracking-wide text-neutral-700">Estatísticas</h2>
+        <div className="flex flex-wrap gap-6">
           <Stat label="Total" value={counts.total} />
           <Stat label="Enviados" value={counts.sent} />
-            <Stat label="Falhados" value={counts.failed} />
-            <Stat label="Pendentes" value={counts.pending} />
-        </Stack>
-      </Paper>
-      <Typography component={Link} href="/sessions" style={{ textDecoration:'none' }}>Voltar</Typography>
-    </Box>
+          <Stat label="Falhados" value={counts.failed} />
+          <Stat label="Pendentes" value={counts.pending} />
+        </div>
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <ProgressCard counts={counts} />
+          <Distribution counts={counts} />
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <a
+            href={`/api/sessions/${session.id}/export`}
+            className="inline-flex h-9 items-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+          >
+            Exportar CSV
+          </a>
+          <Link
+            href="/sessions"
+            className="inline-flex h-9 items-center rounded border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 shadow-sm hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+          >
+            Voltar
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: number }) {
-  return <Box><Typography variant="caption" display="block">{label}</Typography><Typography fontWeight={600}>{value}</Typography></Box>;
+  return (
+    <div>
+      <span className="block text-[11px] uppercase tracking-wide text-neutral-500">{label}</span>
+      <span className="text-sm font-semibold text-neutral-900">{value}</span>
+    </div>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-md border border-neutral-200 bg-white p-3 shadow-sm">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="truncate text-sm font-semibold text-neutral-800" title={String(value)}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function ProgressCard({
+  counts,
+}: {
+  counts: { total: number; sent: number; failed: number; pending: number };
+}) {
+  const { total, sent, failed, pending } = counts;
+  const completedPct = total ? ((sent + failed) / total) * 100 : 0;
+  return (
+    <div className="rounded-md border border-neutral-200 bg-white p-4 shadow-sm">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-600">
+        Progresso Geral
+      </h3>
+      <div className="h-3 w-full overflow-hidden rounded bg-neutral-100">
+        <div className="h-full bg-neutral-800" style={{ width: `${completedPct}%` }} />
+      </div>
+      <p className="mt-2 text-[11px] text-neutral-600">{completedPct.toFixed(1)}% concluído</p>
+    </div>
+  );
+}
+
+function Distribution({
+  counts,
+}: {
+  counts: { total: number; sent: number; failed: number; pending: number };
+}) {
+  const { total, sent, failed, pending } = counts;
+  const segments = [
+    { label: 'Enviados', value: sent, color: 'bg-emerald-500' },
+    { label: 'Falhados', value: failed, color: 'bg-rose-500' },
+    { label: 'Pendentes', value: pending, color: 'bg-amber-500' },
+  ];
+  return (
+    <div className="rounded-md border border-neutral-200 bg-white p-4 shadow-sm">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-600">
+        Distribuição
+      </h3>
+      <div className="flex h-3 w-full overflow-hidden rounded">
+        {segments.map((s) => {
+          const pct = total ? (s.value / total) * 100 : 0;
+          return (
+            <div
+              key={s.label}
+              className={`${s.color}`}
+              style={{ width: `${pct}%` }}
+              title={`${s.label} ${s.value}`}
+            />
+          );
+        })}
+      </div>
+      <ul className="mt-2 space-y-1">
+        {segments.map((s) => {
+          const pct = total ? (s.value / total) * 100 : 0;
+          return (
+            <li
+              key={s.label}
+              className="flex items-center justify-between text-[11px] text-neutral-600"
+            >
+              <span>{s.label}</span>
+              <span>
+                {s.value} ({pct.toFixed(1)}%)
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
