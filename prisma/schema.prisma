@@ -61,6 +61,7 @@ model Session {
   contactLists ContactList[]
   messages    OutboundMessage[]
   variableMappings SessionVariableMapping[]
+  staticVariables SessionStaticVariable[]
 }
 
 enum SessionStatus {
@@ -113,5 +114,15 @@ model SessionVariableMapping {
   sessionId String
   variable  String
   columnKey String
+  createdAt DateTime @default(now())
+}
+
+// Session-level static variables (e.g. media filename placeholder) not tied to a contact column
+model SessionStaticVariable {
+  id        String   @id @default(cuid())
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId String
+  variable  String   // numeric placeholder without braces (e.g. "1")
+  value     String   // literal value passed to Twilio Content API (e.g. uploaded filename)
   createdAt DateTime @default(now())
 }

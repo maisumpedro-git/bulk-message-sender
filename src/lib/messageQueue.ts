@@ -64,6 +64,11 @@ async function processContact(sessionId: string, contactId: string, rawPhone: st
     const mappings = await (prisma as any).sessionVariableMapping.findMany({
       where: { sessionId },
     });
+    // Load session-level static variables (e.g. media placeholder) not tied to contacts
+    // @ts-ignore delegate naming
+    const staticVars: Array<{ variable: string; value: string }> = await (prisma as any).sessionStaticVariable.findMany({
+      where: { sessionId },
+    });
     const brand = await prisma.brand.findUnique({ where: { id: session.brandId } });
     if (!brand) throw new Error('Marca não encontrada');
     const contentSid = templateRef.twilioId; // stored twilio content sid
@@ -81,6 +86,10 @@ async function processContact(sessionId: string, contactId: string, rawPhone: st
           }
         }
       }
+    }
+    // Add static variables (overrides contact-derived ones if same numeric key)
+    for (const sv of staticVars) {
+      if (sv.variable) contentVariables[sv.variable] = sv.value;
     }
     const client = getTwilioClient();
     const from = brand.fromNumber; // assume proper whatsapp: prefix stored

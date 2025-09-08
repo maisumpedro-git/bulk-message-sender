@@ -40,6 +40,10 @@ export default function NewSessionPage() {
   const [uploading, setUploading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Media template session-level variable (single media file) state
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const [mediaInfo, setMediaInfo] = useState<{ url: string; filename: string } | null>(null);
 
   // Load brands paginated (infinite scroll)
   const loadBrands = useCallback(async (page: number) => {
@@ -193,6 +197,16 @@ export default function NewSessionPage() {
       });
       if (!res.ok) throw new Error('Erro ao criar sessão');
       const session = await res.json();
+      // If template type is media and we uploaded a media file that maps to a numeric variable
+      if (selectedTemplate?.type === 'twilio/media' && mediaInfo) {
+        // Choose first numeric variable (or default '1') for media placeholder
+        const mediaVar = selectedTemplate.variables[0] || '1';
+        await fetch('/api/sessions/static-variable', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: session.id, variable: mediaVar, value: mediaInfo.filename }),
+        });
+      }
       if (!csvFileRef.current) throw new Error('Arquivo CSV ausente');
       const fd = new FormData();
       fd.append('sessionId', session.id);
@@ -418,6 +432,48 @@ export default function NewSessionPage() {
               <pre className="whitespace-pre-wrap rounded-md border border-border/60 bg-surface-alt p-2 text-xs text-fg">
                 {selectedTemplate.body || 'Sem conteúdo'}
               </pre>
+              {selectedTemplate.type === 'twilio/media' && (
+                <div className="mt-3 rounded-md border border-border/60 bg-surface-alt p-3 text-xs text-fg">
+                  <p className="mb-2 font-medium">Mídia do Template</p>
+                  <p className="mb-2 text-[11px] text-fg-muted">Upload liberado (png, jpg, mp4, pdf) até 16MB. Essa variável é por sessão.</p>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,video/mp4,application/pdf"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        setMediaFile(f);
+                        setMediaUploading(true);
+                        setError(null);
+                        try {
+                          const fd = new FormData();
+                          fd.append('file', f);
+                          const up = await fetch('/api/media/upload', { method: 'POST', body: fd });
+                          if (!up.ok) throw new Error('Falha ao enviar mídia');
+                          const data = await up.json();
+                          setMediaInfo({ url: data.url, filename: data.filename });
+                        } catch (err: any) {
+                          setError(err.message);
+                          setMediaInfo(null);
+                        } finally {
+                          setMediaUploading(false);
+                        }
+                      }}
+                      className="text-xs"
+                    />
+                    {mediaUploading && <span className="text-[11px] text-fg-muted">Enviando mídia...</span>}
+                    {mediaInfo && !mediaUploading && (
+                      <div className="flex items-center gap-2 text-[11px] text-fg-muted">
+                        <span className="truncate">{mediaInfo.filename}</span>
+                        <a href={mediaInfo.url} target="_blank" className="text-brand underline">
+                          Abrir
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {selectedTemplate?.hasVariables ? (

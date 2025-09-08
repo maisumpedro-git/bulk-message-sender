@@ -12,8 +12,7 @@ interface NavLink {
 }
 
 const links: NavLink[] = [
-  { href: '/sessions', label: 'Sessões', match: /^\/sessions/ },
-  { href: '/sessions/new', label: 'Nova', match: /^\/sessions\/new/ },
+  { href: '/sessions', label: 'Sessões', match: /^\/sessions/ }
 ];
 
 export async function NavBar() {
@@ -31,9 +30,7 @@ export async function NavBar() {
   return (
   <header className="sticky top-0 z-40 mb-8 w-full border-b border-border/60 backdrop-blur bg-surface/80 supports-[backdrop-filter]:bg-surface/60 transition-colors">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-  <Link href="/sessions" className="text-sm font-semibold tracking-tight text-fg">
           Bulk Sender
-        </Link>
         <nav className="flex items-center gap-4 text-xs font-medium">
           {allLinks.map((l) => {
             const active = l.match?.test(path) || path === l.href;
