@@ -69,24 +69,24 @@ export default function SessionsLive() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+          <label className="text-[11px] font-medium uppercase tracking-wide text-fg-muted">
             Buscar
           </label>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Nome"
-            className="h-9 w-48 rounded border border-neutral-300 bg-white px-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+            className="h-9 w-48 rounded-md border border-border/70 bg-surface-alt px-2 text-sm shadow-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+          <label className="text-[11px] font-medium uppercase tracking-wide text-fg-muted">
             Status
           </label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 rounded border border-neutral-300 bg-white px-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+            className="h-9 rounded-md border border-border/70 bg-surface-alt px-2 text-sm shadow-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             <option value="">Todos</option>
             <option value="DRAFT">Draft</option>
@@ -95,26 +95,26 @@ export default function SessionsLive() {
             <option value="FAILED">Failed</option>
           </select>
         </div>
-        <div className="ml-auto flex gap-4 rounded-md border border-neutral-200 bg-white px-4 py-3 text-xs font-medium shadow-sm">
+  <div className="ml-auto flex gap-4 rounded-md border border-border/60 bg-surface px-4 py-3 text-xs font-medium shadow-subtle">
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase text-neutral-500">Total</span>
+            <span className="text-[10px] uppercase text-fg-muted">Total</span>
             <span>{summary.total}</span>
           </div>
-          <div className="flex flex-col text-emerald-700">
-            <span className="text-[10px] uppercase text-neutral-500">Enviados</span>
+          <div className="flex flex-col text-success">
+            <span className="text-[10px] uppercase text-fg-muted">Enviados</span>
             <span>{summary.sent}</span>
           </div>
-          <div className="flex flex-col text-rose-700">
-            <span className="text-[10px] uppercase text-neutral-500">Falhados</span>
+          <div className="flex flex-col text-danger">
+            <span className="text-[10px] uppercase text-fg-muted">Falhados</span>
             <span>{summary.failed}</span>
           </div>
-          <div className="flex flex-col text-amber-700">
-            <span className="text-[10px] uppercase text-neutral-500">Pendentes</span>
+          <div className="flex flex-col text-warning">
+            <span className="text-[10px] uppercase text-fg-muted">Pendentes</span>
             <span>{summary.pending}</span>
           </div>
         </div>
       </div>
-      {loading && !sessions.length && <p className="text-sm text-neutral-600">Carregando...</p>}
+      {loading && !sessions.length && <p className="text-sm text-fg-muted">Carregando...</p>}
   {filtered.map((s) => {
         const total = s.total || 0;
         const sent = s.sent || 0;
@@ -130,16 +130,16 @@ export default function SessionsLive() {
                 ? 'danger'
                 : 'neutral';
         return (
-          <div key={s.id} className="rounded-md border border-neutral-200 bg-white p-3 shadow-sm">
+          <div key={s.id} className="rounded-md border border-border/60 bg-surface p-3 shadow-subtle">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <Link
                   href={`/sessions/${s.id}`}
-                  className="font-semibold text-neutral-900 hover:underline"
+                  className="font-semibold text-fg hover:underline"
                 >
                   {s.name}
                 </Link>
-                <p className="mt-0.5 text-[11px] uppercase tracking-wide text-neutral-500">
+                <p className="mt-0.5 text-[11px] uppercase tracking-wide text-fg-muted">
                   {new Date(s.createdAt as any).toLocaleString()}
                 </p>
               </div>
@@ -151,13 +151,13 @@ export default function SessionsLive() {
             {(s.status === 'RUNNING' || s.status === 'COMPLETED' || s.status === 'FAILED') &&
               total > 0 && (
                 <div className="mt-3">
-                  <div className="h-2 w-full overflow-hidden rounded bg-neutral-100">
+                  <div className="h-2 w-full overflow-hidden rounded bg-fg-muted/15">
                     <div
-                      className="h-full bg-neutral-800 transition-all"
+                      className="h-full bg-brand transition-all"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <p className="mt-1 text-[11px] text-neutral-600">
+                  <p className="mt-1 text-[11px] text-fg-muted">
                     Enviados: {sent} | Falhados: {failed} | Pendentes: {pending} | Total: {total}
                   </p>
                 </div>
@@ -165,11 +165,11 @@ export default function SessionsLive() {
           </div>
         );
       })}
-      {!loading && !filtered.length && <p className="text-sm text-neutral-600">Nenhuma sessão.</p>}
+      {!loading && !filtered.length && <p className="text-sm text-fg-muted">Nenhuma sessão.</p>}
       <div className="flex items-center justify-end gap-2 pt-2 text-[11px]">
-        <button disabled={page<=1} onClick={()=>{setPage(p=>p-1); load(page-1, search);}} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">Prev</button>
+        <button disabled={page<=1} onClick={()=>{setPage(p=>p-1); load(page-1, search);}} className="rounded-md border border-border/70 bg-surface-alt px-2 py-1 text-fg-muted hover:bg-surface-alt/80 disabled:opacity-40">Prev</button>
         <span>{page} / {pages}</span>
-        <button disabled={page>=pages} onClick={()=>{setPage(p=>p+1); load(page+1, search);}} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">Next</button>
+        <button disabled={page>=pages} onClick={()=>{setPage(p=>p+1); load(page+1, search);}} className="rounded-md border border-border/70 bg-surface-alt px-2 py-1 text-fg-muted hover:bg-surface-alt/80 disabled:opacity-40">Next</button>
       </div>
     </div>
   );

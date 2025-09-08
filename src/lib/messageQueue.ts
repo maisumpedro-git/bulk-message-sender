@@ -85,8 +85,8 @@ async function processContact(sessionId: string, contactId: string, rawPhone: st
     const client = getTwilioClient();
     const from = brand.fromNumber; // assume proper whatsapp: prefix stored
     const createParams: any = {
-      to: phoneNormalized,
-      from,
+      to: `whatsapp:${phoneNormalized}`,
+      from: `whatsapp:${from}`,
       contentSid,
     };
     if (Object.keys(contentVariables).length) {

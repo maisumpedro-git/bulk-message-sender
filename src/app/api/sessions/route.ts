@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import authOptions from '../auth/[...nextauth]/options';
 import { z } from 'zod';
+import { error } from 'console';
 
 const sessionSchema = z.object({
   name: z.string().min(1),
@@ -58,14 +59,24 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const sessionAuth: any = await getServerSession(authOptions as any);
-  if (!sessionAuth?.user?.id)
+  console.log(sessionAuth)
+  if (!['ADMIN','USER'].includes(sessionAuth?.role))
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json();
   const parsed = sessionSchema.safeParse(body);
   if (!parsed.success)
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
+
+  const user = await prisma.user.findFirst({where: {
+    email: sessionAuth.user.email
+  }})
+
+  if (!user)
+    return NextResponse.json({ error: 'User not found' }, { status: 500 });
+
   const created = await prisma.session.create({
-    data: { ...parsed.data, creatorId: sessionAuth.user.id },
+    data: { ...parsed.data, creatorId: user?.id },
   });
+  
   return NextResponse.json(created, { status: 201 });
 }

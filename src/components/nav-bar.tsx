@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import LogoutButton from './user/logout-button';
+import { ThemeToggle } from './theme-toggle';
 
 interface NavLink {
   href: string;
@@ -28,9 +29,9 @@ export async function NavBar() {
     .join('')
     .toUpperCase();
   return (
-    <header className="sticky top-0 z-40 mb-8 w-full border-b border-neutral-200 backdrop-blur bg-white/70 supports-[backdrop-filter]:bg-white/55 dark:bg-neutral-900/70 dark:border-neutral-800">
+  <header className="sticky top-0 z-40 mb-8 w-full border-b border-border/60 backdrop-blur bg-surface/80 supports-[backdrop-filter]:bg-surface/60 transition-colors">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/sessions" className="text-sm font-semibold tracking-tight">
+  <Link href="/sessions" className="text-sm font-semibold tracking-tight text-fg">
           Bulk Sender
         </Link>
         <nav className="flex items-center gap-4 text-xs font-medium">
@@ -50,13 +51,14 @@ export async function NavBar() {
               </Link>
             );
           })}
+          <ThemeToggle />
           {session?.user && (
-            <div className="flex items-center gap-3 pl-4 border-l border-neutral-200 dark:border-neutral-800">
+            <div className="flex items-center gap-3 pl-4 border-l border-border/60">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-semibold tracking-wide text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-alt text-[10px] font-semibold tracking-wide text-fg-muted">
                   {initials}
                 </div>
-                <span className="hidden sm:inline text-neutral-600 dark:text-neutral-300 text-[11px] max-w-[140px] truncate">
+                <span className="hidden sm:inline text-fg-muted text-[11px] max-w-[140px] truncate">
                   {session.user?.email}
                 </span>
               </div>

@@ -20,35 +20,35 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-md border border-neutral-200 bg-white p-6 shadow-sm">
-        <h1 className="mb-4 text-xl font-semibold">Login</h1>
+      <div className="w-full max-w-sm rounded-md border border-border/60 bg-surface p-6 shadow-subtle backdrop-blur supports-[backdrop-filter]:bg-surface/90">
+        <h1 className="mb-4 text-center text-xl font-semibold tracking-tight text-fg">Login</h1>
         {error && (
-          <div className="mb-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          <div className="mb-4 rounded-md border border-danger/40 bg-danger/15 px-3 py-2 text-sm text-danger">
             {error}
           </div>
         )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-neutral-700">Email</span>
+            <span className="font-medium text-fg">Email</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+              className="rounded-md border border-border/70 bg-surface-alt px-3 py-2 text-sm text-fg placeholder-fg-muted/70 shadow-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-neutral-700">Senha</span>
+            <span className="font-medium text-fg">Senha</span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+              className="rounded-md border border-border/70 bg-surface-alt px-3 py-2 text-sm text-fg placeholder-fg-muted/70 shadow-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             />
           </label>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>

@@ -218,9 +218,9 @@ export default function NewSessionPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Nova Sessão de Disparo</h1>
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight text-fg">Nova Sessão de Disparo</h1>
       {error && (
-        <div className="mb-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        <div className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
           {error}
         </div>
       )}
@@ -231,7 +231,7 @@ export default function NewSessionPage() {
             className={`flex items-center gap-2 ${step === i + 1 ? 'text-neutral-900' : 'text-neutral-400'}`}
           >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs ${step === i + 1 ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300'}`}
+              className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs ${step === i + 1 ? 'border-brand bg-brand text-white shadow-subtle' : 'border-border/60 text-fg-muted'}`}
             >
               {i + 1}
             </span>
@@ -240,24 +240,24 @@ export default function NewSessionPage() {
         ))}
       </ol>
       {step === 1 && (
-        <section className="mb-8 rounded-md border border-neutral-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-600">
+        <section className="mb-8 rounded-md border border-border/60 bg-surface p-5 shadow-subtle">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-fg-muted">
             1. Definições Básicas
           </h2>
           <div className="flex flex-col gap-4">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-neutral-700">Nome da Sessão</span>
+              <span className="font-medium text-fg">Nome da Sessão</span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Campanha Primavera"
-                className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+                className="rounded-md border border-border/70 bg-surface-alt px-3 py-2 text-sm shadow-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
               />
             </label>
             <div className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-neutral-700">Marca</span>
+              <span className="font-medium text-fg">Marca</span>
               <div
-                className="flex max-h-60 flex-col gap-1 overflow-auto rounded border border-neutral-300 bg-white p-1 shadow-sm focus-within:ring-2 focus-within:ring-neutral-400"
+                className="flex max-h-60 flex-col gap-1 overflow-auto rounded-md border border-border/70 bg-surface-alt p-1 shadow-sm focus-within:ring-2 focus-within:ring-brand/40"
                 onScroll={(e) => {
                   const el = e.currentTarget;
                   if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) {
@@ -272,7 +272,7 @@ export default function NewSessionPage() {
                       type="button"
                       key={b.id}
                       onClick={() => setBrandId(b.id)}
-                      className={`flex items-center justify-between rounded border px-2 py-1 text-left text-xs font-medium transition-colors ${active ? 'border-neutral-800 bg-neutral-800 text-white' : 'border-neutral-200 bg-neutral-50 hover:border-neutral-400 hover:bg-white'}`}
+                      className={`flex items-center justify-between rounded-md border px-2 py-1 text-left text-xs font-medium transition-colors ${active ? 'border-brand bg-brand text-white shadow-subtle' : 'border-border/60 bg-surface hover:border-border hover:bg-surface-alt'}`}
                     >
                       <span className="truncate">{b.prefix} - {b.name}</span>
                       {active && <span className="text-[9px] uppercase tracking-wide">Selecionado</span>}
@@ -280,19 +280,19 @@ export default function NewSessionPage() {
                   );
                 })}
                 {loadingBrands && (
-                  <div className="py-2 text-center text-[11px] text-neutral-500">Carregando...</div>
+                  <div className="py-2 text-center text-[11px] text-fg-muted">Carregando...</div>
                 )}
                 {!loadingBrands && brandsHasMore && (
-                  <div className="py-2 text-center text-[11px] text-neutral-400">Role para carregar mais…</div>
+                  <div className="py-2 text-center text-[11px] text-fg-muted/70">Role para carregar mais…</div>
                 )}
                 {!brands.length && !loadingBrands && (
-                  <div className="py-2 text-center text-[11px] text-neutral-500">Nenhuma marca.</div>
+                  <div className="py-2 text-center text-[11px] text-fg-muted">Nenhuma marca.</div>
                 )}
               </div>
             </div>
             <div>
-              <p className="mb-2 text-sm font-medium text-neutral-700">Template</p>
-              <div className="flex max-h-60 flex-col gap-2 overflow-auto rounded border border-neutral-200 bg-neutral-50 p-2">
+              <p className="mb-2 text-sm font-medium text-fg">Template</p>
+              <div className="flex max-h-60 flex-col gap-2 overflow-auto rounded-md border border-border/70 bg-surface-alt p-2">
                 {templates.map((t) => {
                   const active = templateId === t.id;
                   return (
@@ -300,14 +300,14 @@ export default function NewSessionPage() {
                       key={t.id}
                       type="button"
                       onClick={() => setTemplateId(t.id)}
-                      className={`flex items-center gap-2 rounded border px-2 py-1 text-left text-sm ${active ? 'border-neutral-800 bg-neutral-800 text-white' : 'border-neutral-300 bg-white hover:border-neutral-500'}`}
+                      className={`flex items-center gap-2 rounded-md border px-2 py-1 text-left text-sm ${active ? 'border-brand bg-brand text-white shadow-subtle' : 'border-border/70 bg-surface hover:border-border hover:bg-surface-alt'}`}
                     >
                       <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${t.hasVariables ? 'bg-indigo-100 text-indigo-700' : 'bg-neutral-200 text-neutral-700'}`}
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${t.hasVariables ? 'bg-info/15 text-info' : 'bg-fg-muted/10 text-fg-muted'}`}
                       >
                         {t.hasVariables ? 'Vars' : 'Fixo'}
                       </span>
-                      <span className="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700">
+                      <span className="rounded bg-fg-muted/10 px-1.5 py-0.5 text-[10px] font-medium text-fg-muted">
                         {t.type.replace('twilio/', '')}
                       </span>
                       <span className="truncate font-medium">{t.name}</span>
@@ -318,7 +318,7 @@ export default function NewSessionPage() {
                   <button
                     type="button"
                     onClick={() => loadTemplates(templatePage + 1)}
-                    className="rounded border border-dashed border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-500"
+                    className="rounded-md border border-dashed border-border/70 px-3 py-1 text-xs font-medium text-fg-muted hover:border-border"
                   >
                     Carregar mais
                   </button>
@@ -330,7 +330,7 @@ export default function NewSessionPage() {
                 type="button"
                 disabled={!canProceedToUpload}
                 onClick={() => setStep(2)}
-                className="inline-flex h-9 items-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-9 items-center rounded-md bg-brand px-4 text-sm font-medium text-white shadow-subtle hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Próximo
               </button>
@@ -339,12 +339,12 @@ export default function NewSessionPage() {
         </section>
       )}
       {step === 2 && (
-        <section className="mb-8 rounded-md border border-neutral-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-600">
+        <section className="mb-8 rounded-md border border-border/60 bg-surface p-5 shadow-subtle">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-fg-muted">
             2. Upload da Lista
           </h2>
           <div className="flex flex-col gap-4">
-            <label className="inline-flex w-fit cursor-pointer items-center justify-center rounded border border-neutral-300 bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-neutral-50">
+            <label className="inline-flex w-fit cursor-pointer items-center justify-center rounded-md border border-border/70 bg-surface-alt px-4 py-2 text-sm font-medium shadow-sm hover:bg-surface-alt/80">
               <input
                 type="file"
                 accept=".csv,text/csv"
@@ -353,28 +353,28 @@ export default function NewSessionPage() {
               />
               {uploading ? 'Processando...' : 'Selecionar CSV'}
             </label>
-            {uploading && <p className="text-xs text-neutral-500">Processando arquivo...</p>}
+            {uploading && <p className="text-xs text-fg-muted">Processando arquivo...</p>}
             {csvPreview && (
               <div>
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-fg-muted/80">
                   Colunas detectadas:
                 </p>
                 <div className="mb-2 flex flex-wrap gap-1">
                   {csvPreview.headers.map((h) => (
                     <span
                       key={h}
-                      className="rounded bg-neutral-200 px-2 py-0.5 text-[10px] font-medium text-neutral-700"
+                      className="rounded bg-fg-muted/10 px-2 py-0.5 text-[10px] font-medium text-fg-muted"
                     >
                       {h}
                     </span>
                   ))}
                 </div>
                 <label className="flex flex-col gap-1 text-sm">
-                  <span className="font-medium text-neutral-700">Coluna de Telefone</span>
+                  <span className="font-medium text-fg">Coluna de Telefone</span>
                   <select
                     value={phoneColumn}
                     onChange={(e) => setPhoneColumn(e.target.value)}
-                    className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+                    className="rounded-md border border-border/70 bg-surface-alt px-3 py-2 text-sm shadow-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                   >
                     {csvPreview.headers.map((h) => (
                       <option key={h} value={h}>
@@ -389,7 +389,7 @@ export default function NewSessionPage() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="text-sm font-medium text-neutral-700 hover:underline"
+                className="text-sm font-medium text-fg-muted hover:underline"
               >
                 Voltar
               </button>
@@ -397,7 +397,7 @@ export default function NewSessionPage() {
                 type="button"
                 disabled={!canProceedToReview}
                 onClick={() => setStep(3)}
-                className="inline-flex h-9 items-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-9 items-center rounded-md bg-brand px-4 text-sm font-medium text-white shadow-subtle hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Próximo
               </button>
@@ -406,37 +406,37 @@ export default function NewSessionPage() {
         </section>
       )}
       {step === 3 && (
-        <section className="mb-8 rounded-md border border-neutral-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-600">
+        <section className="mb-8 rounded-md border border-border/60 bg-surface p-5 shadow-subtle">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-fg-muted">
             3. Mapeamento de Variáveis
           </h2>
           {selectedTemplate && (
             <div className="mb-4">
-              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-fg-muted/80">
                 Preview do Template ({selectedTemplate.type})
               </p>
-              <pre className="whitespace-pre-wrap rounded border border-neutral-200 bg-neutral-50 p-2 text-xs text-neutral-800">
+              <pre className="whitespace-pre-wrap rounded-md border border-border/60 bg-surface-alt p-2 text-xs text-fg">
                 {selectedTemplate.body || 'Sem conteúdo'}
               </pre>
             </div>
           )}
           {selectedTemplate?.hasVariables ? (
             <div className="flex flex-col gap-3">
-              <p className="text-xs text-neutral-600">
+              <p className="text-xs text-fg-muted">
                 Defina quais colunas alimentam cada variável numérica do template (ex: {'{{1}}'},{' '}
                 {'{{2}}'} ).
               </p>
               {variableMappings.map((m, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-wrap items-center gap-2 rounded border border-neutral-200 bg-neutral-50 p-2"
+                  className="flex flex-wrap items-center gap-2 rounded-md border border-border/60 bg-surface-alt p-2"
                 >
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] font-medium text-neutral-600">Variável</span>
+                    <span className="text-[11px] font-medium text-fg-muted">Variável</span>
                     <select
                       value={m.variable}
                       onChange={(e) => updateVariableMapping(idx, { variable: e.target.value })}
-                      className="h-9 rounded border border-neutral-300 bg-white px-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+                      className="h-9 rounded-md border border-border/70 bg-surface-alt px-2 text-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                     >
                       <option value="">Selecione</option>
                       {selectedTemplate.variables.map((v) => (
@@ -445,11 +445,11 @@ export default function NewSessionPage() {
                     </select>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] font-medium text-neutral-600">Coluna</span>
+                    <span className="text-[11px] font-medium text-fg-muted">Coluna</span>
                     <select
                       value={m.columnKey}
                       onChange={(e) => updateVariableMapping(idx, { columnKey: e.target.value })}
-                      className="h-9 rounded border border-neutral-300 bg-white px-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+                      className="h-9 rounded-md border border-border/70 bg-surface-alt px-2 text-sm focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                     >
                       <option value="">Selecione</option>
                       {csvPreview?.headers.map((h) => (
@@ -462,7 +462,7 @@ export default function NewSessionPage() {
                   <button
                     type="button"
                     onClick={() => removeVariableMapping(idx)}
-                    className="ml-auto inline-flex h-9 items-center rounded border border-rose-300 bg-rose-50 px-3 text-xs font-medium text-rose-700 hover:bg-rose-100"
+                    className="ml-auto inline-flex h-9 items-center rounded-md border border-danger/40 bg-danger/10 px-3 text-xs font-medium text-danger hover:bg-danger/15"
                   >
                     Remover
                   </button>
@@ -471,20 +471,20 @@ export default function NewSessionPage() {
               <button
                 type="button"
                 onClick={addVariableMapping}
-                className="inline-flex w-fit items-center rounded border border-dashed border-neutral-400 px-3 py-1 text-xs font-medium text-neutral-700 hover:border-neutral-600"
+                className="inline-flex w-fit items-center rounded-md border border-dashed border-border/70 px-3 py-1 text-xs font-medium text-fg-muted hover:border-border"
               >
                 Adicionar Variável
               </button>
-              <hr className="my-2 border-neutral-200" />
+              <hr className="my-2 border-border/50" />
             </div>
           ) : (
-            <p className="text-sm text-neutral-600">Template não possui variáveis.</p>
+            <p className="text-sm text-fg-muted">Template não possui variáveis.</p>
           )}
           <div className="mt-4 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="text-sm font-medium text-neutral-700 hover:underline"
+              className="text-sm font-medium text-fg-muted hover:underline"
             >
               Voltar
             </button>
@@ -492,7 +492,7 @@ export default function NewSessionPage() {
               type="button"
               disabled={creating}
               onClick={submitAll}
-              className="inline-flex h-9 items-center rounded bg-neutral-900 px-4 text-sm font-medium text-white shadow hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-9 items-center rounded-md bg-brand px-4 text-sm font-medium text-white shadow-subtle hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {creating ? 'Criando...' : 'Criar Sessão'}
             </button>

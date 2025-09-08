@@ -18,13 +18,13 @@ export default async function AdminPage() {
   }
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 p-6">
-      <h1 className="text-lg font-semibold tracking-tight">Admin</h1>
+      <h1 className="text-lg font-semibold tracking-tight text-fg">Admin</h1>
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold">Marcas</h2>
+        <h2 className="text-sm font-semibold text-fg-muted">Marcas</h2>
         <BrandsAdmin />
       </section>
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold">Usuários</h2>
+        <h2 className="text-sm font-semibold text-fg-muted">Usuários</h2>
         <UsersAdmin />
       </section>
     </div>

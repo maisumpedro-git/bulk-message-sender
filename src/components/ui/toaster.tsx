@@ -29,12 +29,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={
-              'pointer-events-auto rounded-md border px-3 py-2 text-sm shadow backdrop-blur ' +
+              'pointer-events-auto rounded-md border px-3 py-2 text-sm shadow-subtle backdrop-blur transition-colors ' +
               (t.type === 'success'
-                ? 'border-emerald-300/60 bg-emerald-50/80 text-emerald-800'
+                ? 'border-success/40 bg-success/15 text-success'
                 : t.type === 'error'
-                  ? 'border-rose-300/60 bg-rose-50/80 text-rose-800'
-                  : 'border-neutral-300/60 bg-white/80 text-neutral-800')
+                  ? 'border-danger/40 bg-danger/15 text-danger'
+                  : 'border-border/60 bg-surface/80 text-fg')
             }
           >
             {t.message}

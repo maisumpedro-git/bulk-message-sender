@@ -10,11 +10,13 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body className="min-h-screen bg-gradient-to-br from-neutral-50 via-neutral-100 to-neutral-200 text-neutral-900 antialiased [background:radial-gradient(circle_at_25%_15%,rgba(0,0,0,0.04),transparent_60%),radial-gradient(circle_at_75%_85%,rgba(0,0,0,0.05),transparent_55%)]">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className="min-h-screen bg-bg text-fg antialiased selection:bg-brand/20 selection:text-fg cq">
         <ToastProvider>
           <NavBar />
-          <div className="mx-auto max-w-6xl px-4 pb-10">{children}</div>
+          <main className="container pb-12 pt-2 sm:pt-4">
+            {children}
+          </main>
         </ToastProvider>
       </body>
     </html>
