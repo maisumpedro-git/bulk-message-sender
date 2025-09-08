@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import authOptions from '../auth/[...nextauth]/options';
 import { z } from 'zod';
 
 const sessionSchema = z.object({
@@ -11,8 +13,25 @@ const sessionSchema = z.object({
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const stats = url.searchParams.get('stats');
-  const sessions = await prisma.session.findMany({ orderBy: { createdAt: 'desc' }, take: 50 });
-  if (stats !== '1' || !sessions.length) return NextResponse.json(sessions);
+  const sessionAuth: any = await getServerSession(authOptions as any);
+  const page = Number(url.searchParams.get('page') || '1');
+  const pageSize = Math.min(Number(url.searchParams.get('pageSize') || '10'), 50);
+  const q = url.searchParams.get('q')?.trim();
+  const whereBase = sessionAuth?.role === 'ADMIN' ? undefined : { creatorId: sessionAuth?.user?.id || '' };
+  const where = q
+    ? {
+        AND: [
+          whereBase || {},
+          { name: { contains: q, mode: 'insensitive' as const } },
+        ],
+      }
+    : whereBase;
+  const [sessions, total] = await Promise.all([
+  prisma.session.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize }),
+  prisma.session.count({ where }),
+  ]);
+  if (stats !== '1' || !sessions.length)
+    return NextResponse.json({ items: sessions, page, pageSize, total, pages: Math.ceil(total / pageSize) });
   const ids = sessions.map((s) => s.id);
   const grouped = await prisma.outboundMessage.groupBy({
     by: ['sessionId', 'status'],
@@ -34,21 +53,19 @@ export async function GET(req: NextRequest) {
     ...s,
     ...(counts[s.id] || { sent: 0, failed: 0, pending: 0, total: 0 }),
   }));
-  return NextResponse.json(enriched);
+  return NextResponse.json({ items: enriched, page, pageSize, total, pages: Math.ceil(total / pageSize) });
 }
 
 export async function POST(req: NextRequest) {
+  const sessionAuth: any = await getServerSession(authOptions as any);
+  if (!sessionAuth?.user?.id)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json();
   const parsed = sessionSchema.safeParse(body);
   if (!parsed.success)
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
-  // TODO: autenticação real. Enquanto isso garantir um usuário padrão para evitar FK (P2003)
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: { email: 'system@local', password: 'placeholder', name: 'System User', role: 'ADMIN' },
-    });
-  }
-  const session = await prisma.session.create({ data: { ...parsed.data, creatorId: user.id } });
-  return NextResponse.json(session, { status: 201 });
+  const created = await prisma.session.create({
+    data: { ...parsed.data, creatorId: sessionAuth.user.id },
+  });
+  return NextResponse.json(created, { status: 201 });
 }

@@ -28,6 +28,9 @@ export default function NewSessionPage() {
   const [brandId, setBrandId] = useState('');
   const [templateId, setTemplateId] = useState('');
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [brandPage, setBrandPage] = useState(1);
+  const [brandsHasMore, setBrandsHasMore] = useState(true);
+  const [loadingBrands, setLoadingBrands] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templatePage, setTemplatePage] = useState(1);
   const [templatesHasMore, setTemplatesHasMore] = useState(true);
@@ -38,12 +41,36 @@ export default function NewSessionPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load brands once
+  // Load brands paginated (infinite scroll)
+  const loadBrands = useCallback(async (page: number) => {
+    if (loadingBrands) return;
+    if (!brandsHasMore && page !== 1) return;
+    try {
+      setLoadingBrands(true);
+      const res = await fetch(`/api/brands?page=${page}&pageSize=20`);
+      const data = await res.json();
+      const items: Brand[] = Array.isArray(data) ? data : data.items;
+      if (page === 1) setBrands(items);
+      else {
+        setBrands((prev) => {
+          const existing = new Set(prev.map((b) => b.id));
+            return [...prev, ...items.filter((b) => !existing.has(b.id))];
+        });
+      }
+      const pages = data.pages ?? (items.length < 20 ? page : page + 1); // fallback if legacy
+      setBrandPage(data.page || page);
+      setBrandsHasMore((data.page || page) < pages);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoadingBrands(false);
+    }
+  }, [brandsHasMore, loadingBrands]);
+
+  // Carrega marcas apenas uma vez no primeiro render para evitar loop
   useEffect(() => {
-    fetch('/api/brands')
-      .then((r) => r.json())
-      .then(setBrands)
-      .catch((e) => setError(e.message));
+    loadBrands(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load initial templates
@@ -227,21 +254,42 @@ export default function NewSessionPage() {
                 className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <div className="flex flex-col gap-1 text-sm">
               <span className="font-medium text-neutral-700">Marca</span>
-              <select
-                value={brandId}
-                onChange={(e) => setBrandId(e.target.value)}
-                className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+              <div
+                className="flex max-h-60 flex-col gap-1 overflow-auto rounded border border-neutral-300 bg-white p-1 shadow-sm focus-within:ring-2 focus-within:ring-neutral-400"
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) {
+                    if (!loadingBrands && brandsHasMore) loadBrands(brandPage + 1);
+                  }
+                }}
               >
-                <option value="">Selecione</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.prefix} - {b.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+                {brands.map((b) => {
+                  const active = brandId === b.id;
+                  return (
+                    <button
+                      type="button"
+                      key={b.id}
+                      onClick={() => setBrandId(b.id)}
+                      className={`flex items-center justify-between rounded border px-2 py-1 text-left text-xs font-medium transition-colors ${active ? 'border-neutral-800 bg-neutral-800 text-white' : 'border-neutral-200 bg-neutral-50 hover:border-neutral-400 hover:bg-white'}`}
+                    >
+                      <span className="truncate">{b.prefix} - {b.name}</span>
+                      {active && <span className="text-[9px] uppercase tracking-wide">Selecionado</span>}
+                    </button>
+                  );
+                })}
+                {loadingBrands && (
+                  <div className="py-2 text-center text-[11px] text-neutral-500">Carregando...</div>
+                )}
+                {!loadingBrands && brandsHasMore && (
+                  <div className="py-2 text-center text-[11px] text-neutral-400">Role para carregar mais…</div>
+                )}
+                {!brands.length && !loadingBrands && (
+                  <div className="py-2 text-center text-[11px] text-neutral-500">Nenhuma marca.</div>
+                )}
+              </div>
+            </div>
             <div>
               <p className="mb-2 text-sm font-medium text-neutral-700">Template</p>
               <div className="flex max-h-60 flex-col gap-2 overflow-auto rounded border border-neutral-200 bg-neutral-50 p-2">

@@ -20,12 +20,18 @@ export default function SessionsLive() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (p = page, searchQ = search) => {
     try {
-      const res = await fetch('/api/sessions?stats=1', { cache: 'no-store' });
+      const params = new URLSearchParams({ stats: '1', page: String(p), pageSize: '10' });
+      if (searchQ) params.set('q', searchQ);
+      const res = await fetch('/api/sessions?' + params.toString(), { cache: 'no-store' });
       const data = await res.json();
-      setSessions(data);
+      setSessions(data.items);
+      setPages(data.pages);
+      setPage(data.page);
     } catch (e) {
       // ignore
     } finally {
@@ -34,19 +40,17 @@ export default function SessionsLive() {
   }, []);
 
   useEffect(() => {
-    load();
-    const id = setInterval(load, 4000);
+    load(1, search);
+    const id = setInterval(() => load(page, search), 4000);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, page, search]);
 
   const filtered = useMemo(
     () =>
       sessions.filter(
-        (s) =>
-          (!statusFilter || s.status === statusFilter) &&
-          (!search || s.name.toLowerCase().includes(search.toLowerCase())),
+        (s) => !statusFilter || s.status === statusFilter,
       ),
-    [sessions, statusFilter, search],
+    [sessions, statusFilter],
   );
   const summary = useMemo(() => {
     return filtered.reduce(
@@ -111,7 +115,7 @@ export default function SessionsLive() {
         </div>
       </div>
       {loading && !sessions.length && <p className="text-sm text-neutral-600">Carregando...</p>}
-      {filtered.map((s) => {
+  {filtered.map((s) => {
         const total = s.total || 0;
         const sent = s.sent || 0;
         const failed = s.failed || 0;
@@ -162,6 +166,11 @@ export default function SessionsLive() {
         );
       })}
       {!loading && !filtered.length && <p className="text-sm text-neutral-600">Nenhuma sessão.</p>}
+      <div className="flex items-center justify-end gap-2 pt-2 text-[11px]">
+        <button disabled={page<=1} onClick={()=>{setPage(p=>p-1); load(page-1, search);}} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">Prev</button>
+        <span>{page} / {pages}</span>
+        <button disabled={page>=pages} onClick={()=>{setPage(p=>p+1); load(page+1, search);}} className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">Next</button>
+      </div>
     </div>
   );
 }
