@@ -1,16 +1,17 @@
 import { prisma } from '@/lib/prisma';
+import { OutboundMessage } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
   const session = await prisma.session.findUnique({ where: { id } });
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const messages = await prisma.outboundMessage.findMany({
+  const messages : OutboundMessage[] = await prisma.outboundMessage.findMany({
     where: { sessionId: id },
     orderBy: { createdAt: 'asc' },
   });
   const header = ['id', 'status', 'twilioSid', 'error', 'createdAt', 'updatedAt'];
-  const rows = messages.map((m) => [
+  const rows = messages.map((m : OutboundMessage) => [
     m.id,
     m.status,
     m.twilioSid || '',
