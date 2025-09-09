@@ -2,12 +2,16 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* .npmrc* ./
+# Ensure schema is present for @prisma/client postinstall
+COPY prisma ./prisma
 RUN npm install --legacy-peer-deps
 
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Make sure Prisma Client is generated against the current schema
+RUN npx prisma generate
 RUN npm run build
 
 FROM node:20-alpine AS runner
